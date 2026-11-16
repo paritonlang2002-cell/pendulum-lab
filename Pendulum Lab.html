@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pendulum Lab</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:#101827;color:#fff;font-family:Arial,sans-serif}
+.app{width:min(650px,100%);padding:25px;background:#1b2940;border-radius:22px;text-align:center;box-shadow:0 15px 40px #0005}
+h1{color:#70d6ff;margin:0 0 8px}
+p{color:#b8c7dc}
+canvas{width:100%;height:auto;aspect-ratio:1.5;background:#0c1627;border-radius:15px;margin:15px 0}
+.control{text-align:left;margin:20px 0}
+.control label{display:flex;justify-content:space-between;margin-bottom:10px;color:#dceaff}
+input{width:100%;accent-color:#70d6ff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#263751;padding:14px 5px;border-radius:12px}
+.stat strong{display:block;color:#70d6ff;font-size:21px;margin-top:6px}
+button{border:0;border-radius:10px;padding:11px 20px;background:#70d6ff;color:#102033;font-weight:bold;cursor:pointer;margin:15px 5px 0}
+button:hover{background:#a1e7ff}
+.note{font-size:13px;color:#aebed2;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>⏱️ Pendulum Lab</h1>
+<p>Explore how length and gravity affect a pendulum's swing.</p>
+<canvas id="canvas" width="600" height="400"></canvas>
+
+<div class="control">
+<label>String Length <strong id="lengthValue">1.0 m</strong></label>
+<input id="length" type="range" min="0.3" max="2.5" step="0.1" value="1">
+</div>
+<div class="control">
+<label>Gravity <strong id="gravityValue">9.8 m/s²</strong></label>
+<input id="gravity" type="range" min="1" max="25" step="0.1" value="9.8">
+</div>
+
+<div class="stats">
+<div class="stat">Period<strong id="period">2.01 s</strong></div>
+<div class="stat">Timer<strong id="timer">0.00 s</strong></div>
+<div class="stat">Swing Count<strong id="swings">0</strong></div>
+</div>
+<button id="reset">↻ Reset Timer</button>
+<div class="note">A longer pendulum swings more slowly. Stronger gravity makes it swing faster.</div>
+</div>
+
+<script>
+const canvas=document.getElementById("canvas"),ctx=canvas.getContext("2d");
+const length=document.getElementById("length"),gravity=document.getElementById("gravity");
+const lengthValue=document.getElementById("lengthValue"),gravityValue=document.getElementById("gravityValue");
+const periodText=document.getElementById("period"),timerText=document.getElementById("timer"),swingsText=document.getElementById("swings");
+const reset=document.getElementById("reset");
+
+let angle=Math.PI/3,velocity=0,elapsed=0,lastTime=performance.now(),swingCount=0,lastSide=1;
+const pivot={x:300,y:45};
+
+function period(){return 2*Math.PI*Math.sqrt(+length.value/+gravity.value)}
+function updateControls(){
+ lengthValue.textContent=length.value+" m";
+ gravityValue.textContent=gravity.value+" m/s²";
+ periodText.textContent=period().toFixed(2)+" s";
+}
+length.addEventListener("input",updateControls);
+gravity.addEventListener("input",updateControls);
+
+reset.addEventListener("click",()=>{
+ elapsed=0;swingCount=0;angle=Math.PI/3;velocity=0;lastSide=1;
+ timerText.textContent="0.00 s";swingsText.textContent="0";
+});
+
+function draw(now){
+ let dt=Math.min((now-lastTime)/1000,0.03);
+ lastTime=now;
+ elapsed+=dt;
+
+ let g=+gravity.value,L=+length.value;
+ let angularAcceleration=-(g/L)*Math.sin(angle);
+ velocity+=angularAcceleration*dt;
+ velocity*=0.999;
+ angle+=velocity*dt;
+
+ if(angle<0&&lastSide===1){swingCount++;lastSide=-1}
+ if(angle>0&&lastSide===-1){swingCount++;lastSide=1}
+
+ timerText.textContent=elapsed.toFixed(2)+" s";
+ swingsText.textContent=swingCount;
+
+ ctx.clearRect(0,0,600,400);
+ let visualLength=100+L*95;
+ let bobX=pivot.x+Math.sin(angle)*visualLength;
+ let bobY=pivot.y+Math.cos(angle)*visualLength;
+
+ ctx.strokeStyle="#526782";ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(50,pivot.y);ctx.lineTo(550,pivot.y);ctx.stroke();
+
+ ctx.strokeStyle="#70d6ff";ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(pivot.x,pivot.y);ctx.lineTo(bobX,bobY);ctx.stroke();
+
+ ctx.fillStyle="#dceaff";
+ ctx.beginPath();ctx.arc(pivot.x,pivot.y,7,0,Math.PI*2);ctx.fill();
+
+ ctx.fillStyle="#ffb86b";
+ ctx.beginPath();ctx.arc(bobX,bobY,20,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle="#ffffff88";ctx.lineWidth=3;ctx.stroke();
+
+ ctx.fillStyle="#aebed2";ctx.font="15px Arial";
+ ctx.fillText("PIVOT",pivot.x-22,25);
+ ctx.fillText("BOB",bobX-15,bobY+40);
+
+ requestAnimationFrame(draw);
+}
+updateControls();
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
