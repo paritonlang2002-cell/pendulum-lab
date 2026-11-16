@@ -1,2 +1,1 @@
-# pendulum-lab
-# Pendulum Lab  An interactive physics simulation that demonstrates how string length and gravitational acceleration affect a pendulum's swing period. Adjust the controls, observe the pendulum's motion, and track its live timer and swing count to explore the physics of simple harmonic motion.
+An interactive physics simulation that demonstrates how string length and gravitational acceleration affect a pendulum's swing period. Adjust the controls, observe the pendulum's motion, and track its live timer and swing count to explore the physics of simple harmonic motion.
